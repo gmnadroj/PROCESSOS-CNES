@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Processos CNES – Gestor Municipal SEMSA · DID</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#12355b; --teal:#0b7a75; --teal-2:#0f9b8e; --amber:#d98b13; --ink:#1d2733; --muted:#5b6876;
+  --line:#d8dee6; --bg:#f4f6f9; --card:#ffffff; --ok:#1f8a4c; --bad:#c0392b;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:15px;line-height:1.5}
+code,.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.86em}
+header{background:linear-gradient(120deg,var(--navy),var(--teal));color:#fff;padding:22px 28px 0}
+header .kicker{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.8}
+header h1{margin:4px 0 4px;font-size:24px;font-weight:700}
+header .sub{opacity:.85;font-size:13.5px}
+nav.tabs{display:flex;gap:4px;margin-top:16px}
+nav.tabs a{color:#fff;text-decoration:none;padding:10px 18px;border-radius:10px 10px 0 0;font-weight:600;font-size:14px;opacity:.75}
+nav.tabs a.on{background:var(--bg);color:var(--navy);opacity:1}
+main{padding:20px 28px 40px;max-width:1500px;margin:0 auto}
+.view{display:none}.view.on{display:block}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font:inherit;font-size:13.5px;cursor:pointer;color:var(--ink)}
+.chip:hover{border-color:var(--teal)}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.flowhead{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:10px}
+.flowhead h2{margin:0;font-size:19px;color:var(--navy)}
+.flowhead p{margin:2px 0 0;color:var(--muted);font-size:13.5px;max-width:820px}
+.controls{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;font:inherit;font-size:13.5px;cursor:pointer;color:var(--ink);font-weight:500}
+.btn:hover{border-color:var(--teal)}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff;min-width:118px}
+.btn.primary:hover{background:var(--teal-2)}
+select.btn{padding:6px 8px}
+.progress{font-size:13px;color:var(--muted);min-width:96px;text-align:right}
+.bar{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin:8px 0 10px}
+.bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--amber));transition:width .4s}
+.canvas{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:auto;position:relative;max-height:72vh}
+.canvas svg{display:block}
+.lower{display:grid;grid-template-columns:minmax(0,2fr) minmax(260px,1fr);gap:16px;margin-top:16px}
+@media(max-width:900px){.lower{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.detail .tag{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:999px;margin-right:6px;background:#eef2f6;color:var(--navy)}
+.detail h3{margin:8px 0 6px;font-size:17px}
+.detail ul{margin:6px 0 0;padding-left:20px}
+.detail li{margin:3px 0}
+.warn{margin-top:12px;background:#fff6e6;border-left:4px solid var(--amber);padding:8px 12px;border-radius:6px;font-size:14px}
+.ref{margin-top:10px;font-size:12.5px;color:var(--muted)}
+.steps{max-height:360px;overflow:auto;padding-right:4px}
+.steps ol{margin:0;padding:0;list-style:none;counter-reset:s}
+.steps li{display:flex;gap:10px;align-items:flex-start;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:13.5px}
+.steps li:hover{background:#f1f5f9}
+.steps li b{flex:0 0 24px;height:24px;border-radius:50%;background:#e8edf3;color:var(--navy);display:grid;place-items:center;font-size:12px}
+.steps li.done b{background:var(--teal);color:#fff}
+.steps li.cur{background:#e6f4f1}
+.steps li.cur b{background:var(--amber);color:#fff}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--muted);margin-top:12px}
+.legend span{display:flex;align-items:center;gap:6px}
+
+/* SVG */
+.lane-label{font-weight:600;font-size:12.5px;fill:#24384f}
+.lane-sub{font-size:10.5px;fill:#5b6876}
+.node{cursor:pointer}
+.node .shape{stroke-width:1.6;transition:fill .3s,stroke-width .3s}
+.node text{font-size:11.5px;fill:#1d2733;pointer-events:none}
+.node .num{font-size:10px;font-weight:700;fill:#fff}
+.node.dim{opacity:.55}
+.node.done{opacity:1}
+.node.done .shape{fill:#f0faf8}
+.node.active{opacity:1}
+.node.active .shape{stroke-width:3;fill:#fff8ea;filter:url(#glow)}
+.node.active .halo{opacity:1;animation:halo 1.4s ease-out infinite}
+.halo{fill:none;stroke:var(--amber);stroke-width:2;opacity:0;transform-box:fill-box;transform-origin:center}
+@keyframes halo{0%{transform:scale(1);opacity:.85}100%{transform:scale(1.18);opacity:0}}
+.edge{fill:none;stroke:#a9b4c2;stroke-width:1.6}
+.edge.done{stroke:var(--teal);stroke-width:2;stroke-dasharray:6 5;animation:march 1s linear infinite}
+@keyframes march{to{stroke-dashoffset:-22}}
+.elabel{font-size:10.5px;font-weight:600;fill:#5b6876;paint-order:stroke;stroke:#fff;stroke-width:4px}
+.token{fill:var(--amber);stroke:#fff;stroke-width:2;filter:url(#glow)}
+
+/* Mapeamento */
+.intro{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi b{display:block;font-size:24px;color:var(--teal)}
+.kpi span{font-size:13px;color:var(--muted)}
+h2.sec{color:var(--navy);font-size:19px;margin:26px 0 10px}
+.chain{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.chain a{flex:1 1 170px;text-decoration:none;color:#fff;background:var(--navy);padding:10px 12px;border-radius:10px;font-size:13px;font-weight:600;position:relative}
+.chain a small{display:block;font-weight:400;opacity:.8}
+.chain a.g1{background:#0b7a75}.chain a.g2{background:#12355b}.chain a.g3{background:#7a4b9a}
+details.mp{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.mp summary{cursor:pointer;padding:14px 18px;display:flex;gap:12px;align-items:center;list-style:none}
+details.mp summary::-webkit-details-marker{display:none}
+details.mp summary .id{font-family:"IBM Plex Mono";font-size:12px;background:#e6f4f1;color:var(--teal);padding:3px 8px;border-radius:6px;font-weight:500}
+details.mp summary .nm{font-weight:600;flex:1}
+details.mp summary .fq{font-size:12.5px;color:var(--muted)}
+details.mp[open] summary{border-bottom:1px solid var(--line)}
+.mpbody{padding:14px 18px 18px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px 22px}
+.grid2 h4{margin:8px 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.grid2 p,.grid2 ul{margin:0;font-size:14px}
+.grid2 ul{padding-left:18px}
+ol.acts{margin:6px 0 0;padding-left:22px;font-size:14px}
+ol.acts li{margin:3px 0}
+.linkflow{margin-top:12px;display:inline-block;font-size:13px;color:var(--teal);font-weight:600;cursor:pointer;background:none;border:none;padding:0}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:13.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:#eef2f6;color:var(--navy);font-size:12.5px;text-transform:uppercase;letter-spacing:.04em}
+tr:last-child td{border-bottom:none}
+.raci td.c{text-align:center;font-weight:700;color:var(--teal)}
+.note{font-size:13px;color:var(--muted)}
+.cols2{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px}
+footer{color:var(--muted);font-size:12.5px;text-align:center;padding:20px}
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">SEMSA Manaus · Diretoria de Inteligência de Dados (DID) · GEANE</div>
+  <h1>Processos de trabalho do CNES – Gestor Municipal (Servidor SCNES)</h1>
+  <div class="sub">Mapeamento e fluxogramas elaborados a partir de “Rotinas de Trabalho 2026/2027” e “Instruções de Trabalho – Servidor CNES” (atualizados na comp. 202610)</div>
+  <nav class="tabs">
+    <a href="#fluxos" data-v="fluxos">Fluxogramas animados</a>
+    <a href="#mapeamento" data-v="mapeamento">Mapeamento de processos</a>
+    <a href="#controles" data-v="controles">Controles, riscos e melhorias</a>
+  </nav>
+</header>
+
+<main>
+<!-- ================= FLUXOS ================= -->
+<section class="view" id="v-fluxos">
+  <div class="chips" id="chips"></div>
+  <div class="flowhead">
+    <div><h2 id="ftitle"></h2><p id="fdesc"></p></div>
+    <div class="controls">
+      <button class="btn" id="bReset" title="Reiniciar">⟲ Reiniciar</button>
+      <button class="btn" id="bPrev" title="Passo anterior">◀</button>
+      <button class="btn primary" id="bPlay">▶ Reproduzir</button>
+      <button class="btn" id="bNext" title="Próximo passo">▶|</button>
+      <select class="btn" id="speed" title="Velocidade">
+        <option value="0.6">0,5×</option><option value="1" selected>1×</option><option value="1.6">1,5×</option><option value="2.4">2×</option>
+      </select>
+      <span class="progress" id="prog"></span>
+    </div>
+  </div>
+  <div class="bar"><i id="pbar"></i></div>
+  <div class="canvas" id="canvas"></div>
+  <div class="legend">
+    <span><svg width="26" height="14"><rect x="1" y="1" width="24" height="12" rx="7" fill="#e7f6ee" stroke="#1f8a4c"/></svg>Início / fim</span>
+    <span><svg width="26" height="14"><rect x="1" y="1" width="24" height="12" rx="3" fill="#fff" stroke="#12355b"/></svg>Atividade</span>
+    <span><svg width="20" height="16"><polygon points="10,1 19,8 10,15 1,8" fill="#fff6e6" stroke="#d98b13"/></svg>Decisão</span>
+    <span><svg width="26" height="14"><rect x="1" y="1" width="24" height="12" rx="3" fill="#fff" stroke="#12355b" stroke-dasharray="3 2"/></svg>Evento externo</span>
+    <span><svg width="14" height="14"><circle cx="7" cy="7" r="5" fill="#d98b13"/></svg>Fluxo em execução</span>
+    <span>Clique em qualquer etapa para ver o detalhamento.</span>
+  </div>
+  <div class="lower">
+    <div class="card detail" id="detail"></div>
+    <div class="card"><div style="font-weight:600;margin-bottom:8px;color:var(--navy)">Sequência do fluxo</div><div class="steps"><ol id="steps"></ol></div></div>
+  </div>
+</section>
+
+<!-- ================= MAPEAMENTO ================= -->
+<section class="view" id="v-mapeamento">
+  <div class="intro" id="kpis"></div>
+  <h2 class="sec" style="margin-top:6px">Cadeia de macroprocessos da competência</h2>
+  <p class="note" style="margin-top:0">Verde: processos recorrentes de suporte · Azul: ciclo da competência · Roxo: processos sob demanda/contingência. Clique para abrir o detalhamento.</p>
+  <div class="chain" id="chain"></div>
+  <h2 class="sec">Detalhamento dos macroprocessos</h2>
+  <div id="mps"></div>
+  <h2 class="sec">Atores e responsabilidades</h2>
+  <table class="raci" id="raci"></table>
+  <p class="note">E = executa · A = aprova/responde · C = consultado · I = informado. Elaborado a partir das atribuições descritas nos documentos.</p>
+  <h2 class="sec">Sistemas, ferramentas e repositórios</h2>
+  <table id="sist"></table>
+</section>
+
+<!-- ================= CONTROLES ================= -->
+<section class="view" id="v-controles">
+  <div class="cols2">
+    <div>
+      <h2 class="sec" style="margin-top:0">Críticas mínimas para importação no Servidor SCNES</h2>
+      <table id="criticas"></table>
+      <p class="note">Exceção: para EAS do tipo <b>Consultório Isolado</b>, não se exigem “Tipo de exportação: COMPLETA” nem “Destino: Município P. Gestão”.</p>
+    </div>
+    <div>
+      <h2 class="sec" style="margin-top:0">Calendário e periodicidade</h2>
+      <table id="calend"></table>
+    </div>
+  </div>
+  <h2 class="sec">Pontos de controle e riscos operacionais</h2>
+  <table id="riscos"></table>
+  <h2 class="sec">Divergências e lacunas entre os documentos-fonte</h2>
+  <table id="diverg"></table>
+  <h2 class="sec">Oportunidades de melhoria (sugestões)</h2>
+  <table id="melhorias"></table>
+</section>
+</main>
+<footer>Fonte: DID/GEANE – SEMSA Manaus. Documentos elaborados por Anna Bárbara Santos da Silva, atualizados na competência 202610. Mapeamento e fluxogramas derivados desses documentos.</footer>
+
+<script>
+const MAP = {"kpis": [["11", "macroprocessos mapeados"], ["7", "fluxogramas animados"], ["6", "críticas mínimas de validação"], ["3×/semana", "transmissões ao Datasus/MS"], ["60 dias", "limite para higienizar desligados"], ["90 dias", "validade da senha do Gestor"]], "mps": [{"id": "MP01", "grupo": 1, "nome": "Monitoramento e suporte operacional", "frequencia": "Diário", "fluxo": "ciclo", "objetivo": "Manter a base do Gestor Municipal atualizada com o CNES Nacional e dar suporte aos estabelecimentos.", "gatilho": "Início de cada dia útil.", "atores": "Equipe CNES/DID; EAS; Datasus/MS.", "sistemas": "CNES Nacional, e-mail cnes.semsa, Servidor SCNES.", "entradas": ["Informes e arquivos de aplicação do CNES Nacional", "E-mails de EAS, Datasus/MS e instituições parceiras"], "saidas": ["Servidor com arquivos de aplicação atualizados", "Demandas respondidas ou registradas"], "atividades": ["Consultar informes e disponibilidade de nova versão no CNES Nacional.", "Baixar o arquivo de aplicação “Gestor Federal” e atualizar o Servidor e os demais arquivos sinalizados ao logar.", "Monitorar o e-mail cnes.semsa (suporte aos EAS, Datasus/MS, Unidades Prisionais, Saúde Indígena, Fund. Dr. Thomas e EAS isolados).", "Enviar e receber por e-mail bases locais e informes da rede não SEMSA."], "controles": ["Nova versão identificada aciona o MP03."], "ref": "Rotinas de Trabalho 2026/2027 itens 1–2; Instruções de Trabalho – Servidor CNES p. 2, 4"}, {"id": "MP02", "grupo": 2, "nome": "Abertura da competência", "frequencia": "Mensal", "fluxo": "ciclo", "objetivo": "Fechar a competência anterior no Servidor e liberar a nova competência para envios dos EAS.", "gatilho": "Datasus/MS encerra o processamento e o Servidor sinaliza o fechamento de competência.", "atores": "Equipe CNES/DID; EAS (informados).", "sistemas": "Servidor SCNES; Transmissor CNES (Parâmetros); Portal DID (Informes); WhatsApp CNES SEMSA; e-mail.", "entradas": ["Arquivos de aplicação da nova competência"], "saidas": ["Competência vigente atualizada", "Transmissor desbloqueado para PRÉVIA e FINAL", "Informes publicados"], "atividades": ["Fechar a competência no Servidor; deslogar/logar para atualizar os arquivos de aplicação.", "No Transmissor CNES › Parâmetros: atualizar a competência e desbloquear PRÉVIA e FINAL.", "Publicar Informe “Fechar competência / Transmissor desbloqueado” e replicar no grupo CNES SEMSA.", "Avisar a rede não SEMSA por e-mail."], "controles": ["Estações da equipe refletem a competência do Servidor.", "Acesso ao módulo Administração exige cadastro do operador."], "ref": "Rotinas de Trabalho 2026/2027 itens 7–10; Instruções de Trabalho – Servidor CNES p. 3, 36–38"}, {"id": "MP03", "grupo": 2, "nome": "Atualização de versão do SCNES", "frequencia": "Eventual", "fluxo": "versao", "objetivo": "Atualizar a versão do Servidor, das estações e das bases locais sem perder envios.", "gatilho": "Datasus/MS libera nova versão (aviso ao logar no Servidor).", "atores": "Equipe CNES/DID; EAS SEMSA e não SEMSA.", "sistemas": "CNES Nacional; Servidor SCNES; Transmissor CNES; Repositório de Arquivos (Instaladores CNES); arquivos.semsa; Google Drive.", "entradas": ["Arquivo atualizador da versão"], "saidas": ["Servidor e estações na versão vigente", "Backup dos GDBs da versão anterior", "Atualizador publicado aos EAS"], "atividades": ["Se no decorrer da competência: verificar e importar TODOS os envios pendentes da versão anterior.", "Fazer backup dos GDBs na pasta da competência vigente.", "Baixar e executar o atualizador com o app FECHADO no Servidor e em cada estação da equipe.", "Aguardar a atualização dos arquivos de aplicação.", "Atualizar a versão vigente em Parâmetros do Transmissor.", "Publicar Informe/WhatsApp e o atualizador (Repositório, arquivos.semsa, Google Drive) e avisar a rede não SEMSA por e-mail."], "controles": ["Backup obrigatório antes da atualização.", "Nenhum envio da versão anterior pode ficar sem importar."], "ref": "Rotinas de Trabalho 2026/2027 itens 11–20; Instruções de Trabalho – Servidor CNES p. 3–4"}, {"id": "MP04", "grupo": 2, "nome": "Recepção, validação e importação de envios", "frequencia": "Contínuo na competência", "fluxo": "envios", "objetivo": "Garantir que só sejam importadas no Servidor bases locais íntegras e conformes ao Gestor Mapeado.", "gatilho": "Envio de base local pelo Transmissor CNES ou por e-mail.", "atores": "EAS; Equipe CNES/DID; Diretores de Distrito (cópia nas devoluções).", "sistemas": "Transmissor CNES (Lista de Envios); Visualizador de QRP; Servidor SCNES; pasta \\\\did.semsa\\EnviosCnes\\envios.", "entradas": ["Arquivos .bck e .qrp", "Gestor Mapeado"], "saidas": ["Bases importadas (status “validado”, .bck com “ok”)", "Envios devolvidos com motivo (status “devolvido”)", "Relatório de importações"], "atividades": ["Abrir o .qrp no Visualizador de QRP e conferir as 6 críticas mínimas.", "Listar os válidos e importá-los no Servidor via conexão remota.", "Alterar o status do ID para “arquivos validados” e renomear o .bck com “ok”.", "Não conformes: status “devolvido”, motivo, e-mail ao EAS com cópia ao Distrito e .bck renomeado “rejeitado/devolvido”."], "controles": ["Críticas mínimas (ver aba Controles).", "Sufixo “ok” como controle entre vários operadores."], "ref": "Instruções de Trabalho – Servidor CNES p. 34, 42–46"}, {"id": "MP05", "grupo": 2, "nome": "Controle do calendário de envios", "frequencia": "2× por competência", "fluxo": "ciclo", "objetivo": "Fazer cumprir o calendário anual de envios dos EAS, alinhado ao calendário do Gestor Municipal no Datasus/MS.", "gatilho": "D+1 (24 h) das datas limite de PRÉVIA e de FINAL.", "atores": "Equipe CNES/DID; EAS (informados).", "sistemas": "Transmissor CNES (Parâmetros); Portal DID (Informes); arquivos.semsa.", "entradas": ["Calendário anual pré-estabelecido pela DID"], "saidas": ["PRÉVIA bloqueada", "FINAL bloqueada", "Informes publicados"], "atividades": ["Bloquear envio da PRÉVIA e publicar Informe.", "Bloquear envio da base FINAL e publicar Informe.", "Validar e importar todos os envios FINAIS (Transmissor e e-mail)."], "controles": ["Calendário publicado em arquivos.semsa/DICAR/CNES e no Repositório de Arquivos."], "ref": "Rotinas de Trabalho 2026/2027 itens 21, 23–24; Instruções de Trabalho – Servidor CNES p. 5, 39–41"}, {"id": "MP06", "grupo": 2, "nome": "Transmissão ao Datasus/MS", "frequencia": "Seg, qua e sex", "fluxo": "transmissao", "objetivo": "Enviar a base do Gestor Municipal ao Datasus/MS dentro do calendário federal.", "gatilho": "Dias de transmissão até a data limite de envio FINAL do Gestor Municipal.", "atores": "Equipe CNES/DID; Diretor(a) DID (credencial); Datasus/MS.", "sistemas": "Servidor SCNES; Transmissor Datasus.", "entradas": ["Arquivos de exportação (.bck)"], "saidas": ["Recibo de transmissão arquivado na pasta da transmissão"], "atividades": ["Copiar a exportação de C:\\Datasus\\CNES\\Export para C:\\CNES-DID\\CNES 2026\\‹competência›\\TRANSMISSOES\\‹transmissão›.", "Copiar a pasta para a área de trabalho da máquina com o Transmissor Datasus.", "Preencher tipo CNES, competência MM/AAAA, IBGE 130260, CPF do(a) Diretor(a) DID, senha e arquivo .bck.", "Testar a conexão e transmitir (ignorar Secretaria Estadual).", "Copiar/substituir a pasta da transmissão no Servidor."], "controles": ["Recibo salvo automaticamente na pasta da transmissão.", "Envio FINAL do Gestor sem prorrogação de prazo."], "ref": "Rotinas de Trabalho 2026/2027 itens 3, 22; Instruções de Trabalho – Servidor CNES p. 2, 50–51"}, {"id": "MP07", "grupo": 2, "nome": "Qualidade da base (consistência e advertências)", "frequencia": "Por competência", "fluxo": "qualidade", "objetivo": "Zerar inconsistências e registrar advertências antes do envio final.", "gatilho": "Todos os envios validados e importados.", "atores": "Equipe CNES/DID; EAS (providências futuras).", "sistemas": "Servidor SCNES; e-mail.", "entradas": ["Base do Servidor com todos os envios importados"], "saidas": ["Relatório de consistência sem inconsistências", "Advertência completa salva", "E-mails aos EAS"], "atividades": ["Gerar consistência completa; sanar e repetir até não haver inconsistências.", "Gerar advertência completa e salvar na pasta da competência.", "Sanar o possível e encaminhar o restante por e-mail ao EAS."], "controles": ["Ciclo consistência → correção → consistência até zerar."], "ref": "Rotinas de Trabalho 2026/2027 item 2; Instruções de Trabalho – Servidor CNES p. 5"}, {"id": "MP08", "grupo": 2, "nome": "Higienização de equipes (DESLIGEQUIPE)", "frequencia": "Por competência", "fluxo": "qualidade", "objetivo": "Retirar das equipes os profissionais desligados há mais de 60 dias.", "gatilho": "Fase final da competência.", "atores": "Equipe CNES/DID.", "sistemas": "Servidor SCNES (conexão remota); estação ACCESS – Geração de Relatórios CNES.", "entradas": ["GDBs do Servidor"], "saidas": ["Relatório “Profs Desligados de Equipe”", "Equipes higienizadas"], "atividades": ["Com o app do Servidor FECHADO, copiar os GDBs de C:\\Datasus\\CNES para a estação ACCESS (perfil administrador).", "Abrir C:\\Sistemas\\Access-G e gerar o relatório DESLIGEQUIPE.", "Salvar na pasta da competência.", "Higienizar os profissionais com desligamento há mais de 60 dias."], "controles": ["Copiar os GDBs antes de gerar o relatório (dados atualizados)."], "ref": "Rotinas de Trabalho 2026/2027 itens 25–26; Instruções de Trabalho – Servidor CNES p. 6"}, {"id": "MP09", "grupo": 2, "nome": "Encerramento e publicação das bases finais", "frequencia": "Mensal", "fluxo": "ciclo", "objetivo": "Disponibilizar aos EAS as bases locais e os relatórios finais da competência.", "gatilho": "Envio FINAL do Gestor Municipal ao Datasus/MS (prazo não prorrogado).", "atores": "Equipe CNES/DID; EAS SEMSA e não SEMSA.", "sistemas": "Servidor SCNES; Repositório de Arquivos; arquivos.semsa (FileZilla); Portal DID (Informes); e-mail.", "entradas": ["Planilha Gestor Mapeado Final"], "saidas": ["Bases locais e relatórios finais publicados", "Informe de disponibilidade"], "atividades": ["Gerar as bases locais e os relatórios finais conforme a Planilha Gestor Mapeado Final.", "Publicar no Repositório de Arquivos (pastas respectivas) e em arquivos.semsa/DICAR/CNES/.", "Publicar Informe de disponibilidade para download e importação.", "Enviar as bases por e-mail à rede não SEMSA."], "controles": [], "ref": "Rotinas de Trabalho 2026/2027 itens 3–6; Instruções de Trabalho – Servidor CNES p. 2, 49"}, {"id": "MP10", "grupo": 3, "nome": "Gestão cadastral sob demanda", "frequencia": "Sob demanda", "fluxo": "demandas", "objetivo": "Atender solicitações de criação, alteração, desativação e exclusão de CNES/INE e atos correlatos.", "gatilho": "Demanda SIGED (Quire) ou e-mail (ex.: Unidades Móveis da Bringel).", "atores": "Solicitantes; Equipe CNES/DID; Diretor(a) DID (acesso de gestor).", "sistemas": "Quire; SIGED; CNES Nacional – Área Restrita; site antigo CNES2; Servidor SCNES; Sistema ADA.", "entradas": ["Solicitação formal (SIGED/memorando)"], "saidas": ["CNES/INE criado, remanejado ou desativado", "Portarias de INE atualizadas no ADA", "Evidências na pasta da tarefa"], "atividades": ["Registrar a tarefa no Quire.", "Criar CNES (CNPJ da mantenedora, nome fantasia, móvel/imóvel) e salvar print com o código.", "Criar/remanejar INE; desativar CNES com o mesmo motivo do Servidor e justificativa SIGED + memorando.", "Cadastro de gestores / inclusão de terceiros no site antigo CNES2.", "Excluir estabelecimento da base do Servidor (Utilitários › Excluir).", "Editar portarias de homologação/deshomologação de INE no ADA."], "controles": ["Tipo do INE não pode ser alterado depois de criado.", "CNES não pode ser excluído na Área Restrita."], "ref": "Rotinas de Trabalho 2026/2027 item 27; Instruções de Trabalho – Servidor CNES p. 7, 19–26, 52–67"}, {"id": "MP11", "grupo": 3, "nome": "Administração de acessos e contingência", "frequencia": "90 dias / eventual", "fluxo": "contingencia", "objetivo": "Manter o acesso de Gestor Municipal ativo e restaurar o Servidor em caso de falha do backup.", "gatilho": "Senha expirada (90 dias) ou backup corrompido.", "atores": "Diretor(a) DID; Equipe CNES/DID; Datasus/MS.", "sistemas": "CNES Administrador (Área Restrita); e-mail institucional; Servidor SCNES.", "entradas": ["Aviso de senha expirada", "Falha de backup"], "saidas": ["Nova senha testada", "Servidor restaurado e higienizado"], "atividades": ["“Esqueceu sua senha?” → link no e-mail institucional do(a) Diretor(a) → nova senha → testar.", "Alteração voluntária: Meu Perfil › Alterar senha › Atualizar.", "Restauração: solicitar a base ao Gestor Federal; após ~24 h, baixar e importar no Servidor recém-instalado; higienizar a base."], "controles": ["Dependência de uma única credencial (Diretor(a) DID)."], "ref": "Instruções de Trabalho – Servidor CNES p. 8–17, 23"}], "raci": {"head": ["Atividade", "Equipe CNES/DID", "Diretor(a) DID", "Datasus/MS", "EAS SEMSA", "EAS não SEMSA", "Distritos"], "rows": [["Monitorar CNES Nacional e e-mail", "E", "I", "C", "—", "—", "—"], ["Abrir competência e parametrizar o Transmissor", "E", "I", "C", "I", "I", "I"], ["Atualizar a versão do SCNES", "E", "I", "C", "E", "E", "I"], ["Enviar bases locais (PRÉVIA/FINAL)", "I", "—", "—", "E", "E", "C"], ["Validar/importar ou devolver envios", "E", "—", "—", "I", "I", "I"], ["Bloquear PRÉVIA/FINAL conforme calendário", "E", "I", "—", "I", "I", "I"], ["Transmitir ao Datasus/MS", "E", "A", "I", "—", "—", "—"], ["Consistência, advertências e higienização", "E", "—", "—", "I", "I", "—"], ["Gerar e publicar bases/relatórios finais", "E", "—", "—", "I", "I", "I"], ["Demandas cadastrais (CNES, INE, portarias)", "E", "A", "C", "C", "C", "C"], ["Renovar senha do Gestor Municipal", "E", "A", "—", "—", "—", "—"]]}, "sistemas": [["CNES Nacional (cnes.datasus.gov.br)", "Informes, versões, arquivos de aplicação; Área Restrita (CNES Administrador) para criação de CNES/INE, desativação e solicitação de base", "MP01, MP02, MP03, MP10, MP11"], ["Site antigo CNES2", "Cadastro de gestores, inclusão de terceiros, alteração de CPF/senha do gestor no Transmissor Datasus", "MP10"], ["Servidor SCNES", "Base do Gestor Municipal; fechamento de competência, importações, consistência, exportação", "MP02–MP09"], ["Transmissor CNES – Portal DID", "Lista de Envios, Parâmetros (competência, versão, bloqueios), Lista de Unidades, Informes", "MP02–MP05"], ["Visualizador de QRP", "Conferência manual das críticas mínimas no relatório .qrp", "MP04"], ["Repositório de Arquivos – Portal DID / arquivos.semsa (FileZilla)", "Publicação de bases finais, relatórios, atualizadores, calendário, material de apoio, memos", "MP03, MP05, MP09"], ["Transmissor Datasus", "Envio da base do Gestor ao Datasus/MS (IBGE 130260)", "MP06"], ["ACCESS – Geração de Relatórios CNES", "Relatório DESLIGEQUIPE (C:\\Sistemas\\Access-G)", "MP08"], ["Sistema ADA", "Portarias de homologação/deshomologação de INE; consultas de profissionais e equipes", "MP10"], ["Quire / SIGED", "Registro e acompanhamento das demandas", "MP10"], ["Pasta \\\\did.semsa\\EnviosCnes\\envios", "Armazenamento dos envios; marcação “ok” / “rejeitado/devolvido”", "MP04"], ["C:\\CNES-DID\\CNES 2026\\‹competência›", "Pasta da competência: backups, transmissões, relatórios, evidências", "MP03, MP06–MP10"], ["Canais de comunicação", "Informes do Portal DID, grupo WhatsApp CNES SEMSA, e-mail cnes.semsa, Google Drive (rede não SEMSA)", "MP01–MP03, MP05, MP09"]], "criticas": [["1", "Competência vigente", "Competência do envio da base local diferente da competência vigente"], ["2", "Versão vigente", "Versão do envio da base local diferente da versão vigente"], ["3", "Tipo de exportação: COMPLETA*", "Tipo de Exportação deve ser COMPLETA"], ["4", "Destino: Município P. Gestão*", "A seleção para Destino da exportação deve ser Município P. Gestão"], ["5", "Nº de estabelecimentos conforme Gestor Mapeado", "Base Local faltando EAS: XX"], ["6", "Nº de equipes conforme Gestor Mapeado", "Base Local faltando equipes: YY"]], "calendario": [["Diariamente (manhã)", "Monitorar CNES Nacional e e-mail cnes.semsa; atualizar arquivos de aplicação"], ["Início da competência", "Fechar competência, parametrizar e desbloquear o Transmissor, publicar Informes"], ["Eventual", "Atualização de versão (início ou durante a competência)"], ["Contínuo", "Validação/importação de envios; demandas SIGED/Quire"], ["Seg, qua e sex", "Transmissões ao Datasus/MS até a data limite FINAL do Gestor"], ["D+1 da data limite PRÉVIA", "Bloquear PRÉVIA + Informe"], ["D+1 da data limite FINAL", "Bloquear FINAL + Informe; importar todos os FINAIS"], ["Fim da competência", "Consistência, advertência, DESLIGEQUIPE, envio FINAL, bases e relatórios finais"], ["A cada 90 dias", "Renovar a senha do Gestor Municipal (Área Restrita)"]], "riscos": [["Envios da versão anterior não importados antes de atualizar a versão", "Verificação obrigatória de pendências e importação de todos os envios antes do backup/atualização", "MP03"], ["Perda de dados na atualização de versão", "Backup dos GDBs na pasta da competência; atualizador executado com o app FECHADO", "MP03"], ["Base validada sem importar (vários operadores)", "Status “arquivos validados” no Transmissor + sufixo “ok” no .bck", "MP04"], ["Importação de base não conforme", "Seis críticas mínimas conferidas no Visualizador de QRP contra o Gestor Mapeado", "MP04"], ["Envios fora do prazo", "Bloqueio de PRÉVIA/FINAL em D+1 e Informes", "MP05"], ["Base com inconsistências enviada ao Datasus/MS", "Consistência completa repetida até zerar", "MP07"], ["Equipes com profissionais desligados", "Relatório DESLIGEQUIPE e higienização (> 60 dias)", "MP08"], ["Relatório gerado com GDB desatualizado", "Cópia dos GDBs do Servidor (app fechado) antes de rodar o ACCESS", "MP08"], ["Credencial única do Gestor Municipal (expira em 90 dias)", "Recuperação pelo e-mail institucional do(a) Diretor(a) DID; testar após troca", "MP06, MP11"], ["Backup corrompido", "Solicitação de base ao Gestor Federal (~24 h), nova instalação e higienização", "MP11"], ["Erros irreversíveis na Área Restrita", "Tipo de INE imutável e CNES não excluível: conferir dados antes de salvar", "MP10"]], "divergencias": [["Momento da consistência completa", "Item 2: diária, após atualizar os arquivos de aplicação", "p. 5: após todos os envios validados e importados", "Explicitar as duas etapas: consistência preventiva diária e consistência completa final"], ["Envio Final do Gestor", "Item 3 está incompleto (“Após Envio Final…”)", "p. 2: envio final e não prorrogação do prazo", "Reescrever o item 3 da Rotina"], ["Prazo de bloqueio", "“após 24 h da data limite”", "“ao dia seguinte da data limite”", "Padronizar como D+1 da data limite"], ["Críticas mínimas", "—", "p. 34 lista sem exceções; p. 42 traz a exceção para Consultório Isolado", "Unificar a lista com a exceção em um só lugar"], ["Distribuição à rede não SEMSA", "Google Drive (atualizador) e e-mail", "Somente e-mail", "Incluir o Google Drive nas Instruções"], ["Periodicidade das transmissões", "Seg, qua e sex", "Não informa", "Incluir a periodicidade nas Instruções"], ["Demandas das Unidades Móveis da Bringel", "Item 27 com redação ambígua (“somente das Unidades Móveis…”)", "p. 6: demandas da pasta e do Quire", "Esclarecer o escopo do item 27"]], "melhorias": [["Automatizar a conferência das 6 críticas a partir do .qrp, comparando com o Gestor Mapeado", "Menos tempo de validação e menos erro manual (o comparador de QRP já usado no setor pode servir de base)"], ["Checklist por competência com datas do calendário e responsável por etapa", "Rastreabilidade e continuidade quando há troca de operador"], ["Registro (log) de backups e de transmissões com o nº do recibo", "Evidência para auditoria e controle interno"], ["Indicadores mensais: % de envios devolvidos por motivo, tempo médio de validação, EAS fora do prazo", "Gestão por resultados e feedback aos Distritos"], ["Plano para a dependência da credencial do(a) Diretor(a) DID (lembrete antes dos 90 dias)", "Evita interrupção das transmissões e da Área Restrita"], ["Formalizar os documentos como POP com versão e data de vigência", "Padronização e alinhamento entre as duas fontes"]]};
+const FLOWS = [{"id": "ciclo", "chip": "1 · Ciclo da competência (visão geral)", "mp": "MP01–MP09", "title": "Ciclo completo da competência CNES no Gestor Municipal", "desc": "Visão ponta a ponta: da abertura da competência no Servidor SCNES, passando pela recepção e validação dos envios dos estabelecimentos, transmissões ao Datasus/MS, qualidade da base, até a publicação das bases locais finais e o reinício do ciclo.", "lanes": [{"label": "Datasus/MS", "sub": "CNES Nacional · Gestor Federal", "accent": "#4f46e5", "fill": "#f6f7ff", "id": "MS"}, {"label": "DID/GEANE – Equipe CNES", "sub": "Operadores do Servidor SCNES", "accent": "#0b7a75", "fill": "#f2faf8", "id": "DID"}, {"label": "Servidor SCNES", "sub": "Base do Gestor Municipal (GDBs)", "accent": "#2f7d32", "fill": "#f5faf2", "id": "SRV"}, {"label": "Portal DID", "sub": "Transmissor CNES · Informes · Repositório", "accent": "#d98b13", "fill": "#fffaf1", "id": "PORTAL"}, {"label": "EAS Rede SEMSA", "sub": "Distritos (GEIND/NUMOA), MMT, SAMU, descentralizados", "accent": "#1d6fb8", "fill": "#f3f8fd", "id": "SEMSA"}, {"label": "EAS Rede não SEMSA", "sub": "Fund. Dr. Thomas, Saúde Indígena, UBS Prisionais", "accent": "#7a4b9a", "fill": "#faf5fb", "id": "NAO"}], "nodes": [{"id": "c1", "lane": "DID", "col": 0, "label": "Monitoramento diário: CNES Nacional, e-mail cnes.semsa e arquivos de aplicação", "type": "start", "sys": "CNES Nacional · e-mail", "det": ["Toda manhã: informes do site cnes.datasus.gov.br e se há nova versão.", "Baixar o arquivo de aplicação “Gestor Federal” e atualizar a base Servidor CNES e demais arquivos sinalizados ao logar.", "Monitorar o e-mail cnes.semsa@manaus.am.gov.br (suporte aos EAS, Datasus/MS, Saúde Indígena, Unidades Prisionais, Fund. Dr. Thomas)."], "warn": null, "ref": "Rotinas de Trabalho 2026/2027 itens 1–2; Instruções de Trabalho – Servidor CNES p. 2 e 4"}, {"id": "c2", "lane": "MS", "col": 1, "label": "Datasus encerra o processamento e libera os arquivos da nova competência", "type": "event", "sys": "CNES Nacional", "det": ["Monitorar toda manhã quando o Datasus/MS encerra o processamento e atualiza os arquivos de aplicação da competência seguinte.", "Verificar também se há nova versão disponível (ver fluxo 2)."], "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 2"}, {"id": "c3", "lane": "SRV", "col": 2, "label": "Fechar competência no Servidor; deslogar/logar e atualizar arquivos de aplicação", "type": "task", "sys": "Servidor SCNES", "det": ["Quando a base Servidor sinalizar, efetivar o fechamento de competência.", "Deslogar e logar novamente para atualizar os arquivos de aplicação da nova competência.", "Estações da equipe CNES/DID refletem a competência do Servidor."], "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 7; Instruções de Trabalho – Servidor CNES p. 3"}, {"id": "c4", "lane": "PORTAL", "col": 3, "label": "Transmissor CNES › Parâmetros: nova competência + desbloquear PRÉVIA e FINAL", "type": "task", "sys": "Transmissor CNES – Administração", "det": ["Portal DID › Soluções Tecnológicas › Transmissor › CNES › Administração.", "Aba “Painel de Controle/Parâmetros”: alterar da competência anterior para a atual.", "Desbloquear permissões de envio “PRÉVIA” e “FINAL” e clicar em Salvar."], "warn": "Necessário cadastro do operador para acessar o módulo de Administração.", "ref": "Rotinas de Trabalho 2026/2027 item 8; Instruções de Trabalho – Servidor CNES p. 3, 36–38"}, {"id": "c5", "lane": "PORTAL", "col": 4, "label": "Informe no Portal DID + grupo WhatsApp CNES SEMSA", "type": "task", "sys": "Portal DID – Informes", "det": ["Publicar Informe (Módulo Administração): “Fechar competência” e “Transmissor CNES desbloqueado”.", "Replicar no grupo CNES SEMSA (GEINDs, NUMOAs, MMT, SAMU, EAS descentralizados do Distrito Central)."], "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 9; Instruções de Trabalho – Servidor CNES p. 3, 42"}, {"id": "c6", "lane": "NAO", "col": 4, "label": "E-mail cnes.semsa: aviso de fechamento de competência", "type": "task", "sys": "E-mail institucional", "det": ["Sinalizar o fechamento de competência à Fund. Dr. Thomas, Saúde Indígena e UBS Prisionais."], "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 10"}, {"id": "c7", "lane": "SEMSA", "col": 5, "label": "EAS fecham competência e enviam base local (.bck + .qrp) pelo Transmissor", "type": "task", "sys": "SCNES local · Transmissor CNES", "det": ["Envios de PRÉVIA e de FINAL conforme o calendário anual pré-estabelecido pela DID.", "O calendário dos EAS deriva do calendário de envio do Gestor Municipal ao Datasus/MS."], "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 39–42"}, {"id": "c8", "lane": "NAO", "col": 5, "label": "EAS não SEMSA enviam base local por e-mail", "type": "task", "sys": "E-mail institucional", "det": ["Bases recebidas por e-mail seguem a mesma validação dos envios do Transmissor."], "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 24; Instruções de Trabalho – Servidor CNES p. 4"}, {"id": "c9", "lane": "DID", "col": 6, "label": "Verificar o .qrp no Visualizador de QRP × Gestor Mapeado", "type": "task", "sys": "Visualizador de QRP", "det": ["Conferir as 6 críticas mínimas (competência, versão, tipo de exportação, destino, nº de estabelecimentos e nº de equipes).", "Detalhado no fluxo 3."], "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 34, 42"}, {"id": "c10", "lane": "DID", "col": 7, "label": "Atende às críticas mínimas?", "type": "decision", "sys": null, "det": null, "warn": null, "ref": null}, {"id": "c11", "lane": "SRV", "col": 8, "label": "Importar no Servidor; status “validado”; renomear .bck com “ok”", "type": "task", "sys": "Servidor SCNES · Transmissor", "det": ["Importação via conexão remota.", "Status do ID alterado para “arquivos validados”.", "Arquivo .bck renomeado com “ok” na pasta Envios."], "warn": "Vários operadores trabalham no mesmo Servidor: o sufixo “ok” evita que base validada fique sem importar.", "ref": "Instruções de Trabalho – Servidor CNES p. 43–44"}, {"id": "c12", "lane": "PORTAL", "col": 8, "label": "Devolver envio: status “devolvido”, motivo e e-mail ao EAS (cc Distrito)", "type": "task", "sys": "Transmissor CNES", "det": ["Motivo da devolução descreve a não conformidade.", "E-mail ao endereço cadastrado pelo EAS, com cópia ao(à) Diretor(a) do Distrito de Saúde.", ".bck renomeado com “rejeitado/devolvido”."], "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 45–46"}, {"id": "c13", "lane": "DID", "col": 9, "label": "Transmitir ao Datasus/MS às segundas, quartas e sextas até a data limite", "type": "task", "sys": "Transmissor Datasus", "det": ["Detalhado no fluxo 4."], "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 22; Instruções de Trabalho – Servidor CNES p. 50–51"}, {"id": "c14", "lane": "PORTAL", "col": 10, "label": "D+1 da data limite: bloquear PRÉVIA e, depois, FINAL + Informes", "type": "task", "sys": "Transmissor CNES", "det": ["Ao dia seguinte (24 h) da data limite PRÉVIA: “Bloquear envio da prévia” › Salvar › Informe.", "Ao dia seguinte da data limite FINAL: “Bloquear envio da base final” › Salvar › Informe."], "warn": null, "ref": "Rotinas de Trabalho 2026/2027 itens 21 e 23; Instruções de Trabalho – Servidor CNES p. 5, 39–41"}, {"id": "c15", "lane": "SRV", "col": 11, "label": "Importar todos os envios FINAIS e gerar consistência completa", "type": "task", "sys": "Servidor SCNES", "det": ["Validação e importação de todos os envios FINAIS (Transmissor e e-mail).", "Com tudo importado, gerar consistência completa."], "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 24; Instruções de Trabalho – Servidor CNES p. 5"}, {"id": "c16", "lane": "SRV", "col": 12, "label": "Há inconsistências?", "type": "decision", "sys": null, "det": null, "warn": null, "ref": null}, {"id": "c17", "lane": "DID", "col": 12, "label": "Sanar inconsistências e gerar advertência completa", "type": "task", "sys": "Servidor SCNES", "det": ["Repetir a consistência até o relatório não sinalizar inconsistências.", "Advertência completa salva na pasta da competência; o que não for sanado é enviado por e-mail ao EAS."], "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 5"}, {"id": "c18", "lane": "SRV", "col": 13, "label": "Relatório DESLIGEQUIPE (ACCESS) e higienização de desligados há mais de 60 dias", "type": "task", "sys": "ACCESS · Servidor SCNES", "det": ["Detalhado no fluxo 5."], "warn": null, "ref": "Rotinas de Trabalho 2026/2027 itens 25–26; Instruções de Trabalho – Servidor CNES p. 6"}, {"id": "c19", "lane": "MS", "col": 14, "label": "Data limite: envio FINAL do Gestor Municipal ao Datasus/MS (sem prorrogação)", "type": "event", "sys": "Transmissor Datasus", "det": null, "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 3; Instruções de Trabalho – Servidor CNES p. 2"}, {"id": "c20", "lane": "DID", "col": 15, "label": "Gerar bases locais e relatórios finais (Planilha Gestor Mapeado Final)", "type": "task", "sys": "Servidor SCNES", "det": null, "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 4; Instruções de Trabalho – Servidor CNES p. 2"}, {"id": "c21", "lane": "PORTAL", "col": 16, "label": "Publicar no Repositório de Arquivos e em arquivos.semsa + Informe", "type": "task", "sys": "Portal DID · FileZilla", "det": ["Repositório de Arquivos (perfil administrador), nas respectivas pastas.", "arquivos.semsa/DICAR/CNES/ via FileZilla (acesso adm).", "Informe: bases e relatórios disponíveis para download e importação."], "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 5; Instruções de Trabalho – Servidor CNES p. 2, 49"}, {"id": "c22", "lane": "NAO", "col": 16, "label": "Enviar bases finais por e-mail", "type": "task", "sys": "E-mail institucional", "det": null, "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 6"}, {"id": "c23", "lane": "SEMSA", "col": 17, "label": "EAS baixam e importam as bases locais finais", "type": "task", "sys": "SCNES local", "det": null, "warn": null, "ref": null}, {"id": "c24", "lane": "DID", "col": 18, "label": "Ciclo reinicia na nova competência; demandas SIGED/Quire seguem em paralelo", "type": "end", "sys": null, "det": ["Prosseguir com as demandas da pasta da competência e as tarefas do Quire até a última transmissão."], "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 27; Instruções de Trabalho – Servidor CNES p. 6"}], "edges": [{"from": "c1", "to": "c2", "label": null, "route": null}, {"from": "c2", "to": "c3", "label": null, "route": null}, {"from": "c3", "to": "c4", "label": null, "route": null}, {"from": "c4", "to": "c5", "label": null, "route": null}, {"from": "c4", "to": "c6", "label": null, "route": null}, {"from": "c5", "to": "c7", "label": null, "route": null}, {"from": "c6", "to": "c8", "label": null, "route": null}, {"from": "c7", "to": "c9", "label": null, "route": null}, {"from": "c8", "to": "c9", "label": null, "route": null}, {"from": "c9", "to": "c10", "label": null, "route": null}, {"from": "c10", "to": "c11", "label": "Sim", "route": null}, {"from": "c10", "to": "c12", "label": "Não", "route": "D"}, {"from": "c12", "to": "c7", "label": "reenvio", "route": null}, {"from": "c11", "to": "c13", "label": null, "route": null}, {"from": "c13", "to": "c14", "label": null, "route": null}, {"from": "c14", "to": "c15", "label": null, "route": null}, {"from": "c15", "to": "c16", "label": null, "route": null}, {"from": "c16", "to": "c17", "label": "Sim", "route": null}, {"from": "c17", "to": "c15", "label": null, "route": "L"}, {"from": "c16", "to": "c18", "label": "Não", "route": null}, {"from": "c18", "to": "c19", "label": null, "route": null}, {"from": "c19", "to": "c20", "label": null, "route": null}, {"from": "c20", "to": "c21", "label": null, "route": null}, {"from": "c20", "to": "c22", "label": null, "route": null}, {"from": "c21", "to": "c23", "label": null, "route": null}, {"from": "c22", "to": "c23", "label": null, "route": null}, {"from": "c23", "to": "c24", "label": null, "route": null}], "seq": ["c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8", "c9", "c10", "c12", "c7", "c9", "c10", "c11", "c13", "c14", "c15", "c16", "c17", "c15", "c16", "c18", "c19", "c20", "c21", "c22", "c23", "c24"]}, {"id": "versao", "chip": "2 · Atualização de versão", "mp": "MP03", "title": "Atualização de versão do SCNES", "desc": "Evento disparado quando o Datasus/MS libera uma nova versão no início ou durante a competência. O ponto crítico é não perder envios feitos na versão anterior e fazer backup antes de atualizar.", "lanes": [{"label": "Datasus/MS", "sub": "CNES Nacional · Gestor Federal", "accent": "#4f46e5", "fill": "#f6f7ff", "id": "MS"}, {"label": "DID/GEANE – Equipe CNES", "sub": "Operadores do Servidor SCNES", "accent": "#0b7a75", "fill": "#f2faf8", "id": "DID"}, {"label": "Servidor SCNES", "sub": "Base do Gestor Municipal (GDBs)", "accent": "#2f7d32", "fill": "#f5faf2", "id": "SRV"}, {"label": "Portal DID", "sub": "Transmissor CNES · Informes · Repositório", "accent": "#d98b13", "fill": "#fffaf1", "id": "PORTAL"}, {"label": "EAS Rede SEMSA", "sub": "Distritos (GEIND/NUMOA), MMT, SAMU, descentralizados", "accent": "#1d6fb8", "fill": "#f3f8fd", "id": "SEMSA"}, {"label": "EAS Rede não SEMSA", "sub": "Fund. Dr. Thomas, Saúde Indígena, UBS Prisionais", "accent": "#7a4b9a", "fill": "#faf5fb", "id": "NAO"}], "nodes": [{"id": "v1", "lane": "MS", "col": 0, "label": "Datasus/MS libera nova versão (aviso ao logar no Servidor)", "type": "start", "sys": "CNES Nacional", "det": null, "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 11; Instruções de Trabalho – Servidor CNES p. 3"}, {"id": "v2", "lane": "DID", "col": 1, "label": "Liberada no decorrer da competência vigente?", "type": "decision", "sys": null, "det": null, "warn": null, "ref": null}, {"id": "v3", "lane": "DID", "col": 2, "label": "Verificar envios pendentes na versão anterior (Transmissor e e-mail)", "type": "task", "sys": "Transmissor CNES · e-mail", "det": null, "warn": "SEMPRE verificar antes de atualizar.", "ref": "Rotinas de Trabalho 2026/2027 item 17; Instruções de Trabalho – Servidor CNES p. 3"}, {"id": "v4", "lane": "DID", "col": 3, "label": "Validar e importar TODOS os envios pendentes", "type": "task", "sys": "Servidor SCNES", "det": null, "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 18; Instruções de Trabalho – Servidor CNES p. 3"}, {"id": "v5", "lane": "SRV", "col": 4, "label": "Backup dos GDBs na pasta da competência vigente (seguir padrão)", "type": "task", "sys": "Servidor SCNES", "det": null, "warn": "Backup obrigatório ANTES de executar o atualizador.", "ref": "Rotinas de Trabalho 2026/2027 item 18; Instruções de Trabalho – Servidor CNES p. 3"}, {"id": "v6", "lane": "DID", "col": 5, "label": "Baixar o arquivo atualizador da versão no CNES Nacional", "type": "task", "sys": "CNES Nacional", "det": ["Download na área de trabalho da máquina do operador."], "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 13"}, {"id": "v7", "lane": "SRV", "col": 6, "label": "Executar o atualizador com o app FECHADO no Servidor e nas estações da equipe", "type": "task", "sys": "Servidor SCNES", "det": ["Seguir o Instrutivo SCNES para a operação.", "Cada operador atualiza a versão da sua base com o Servidor FECHADO."], "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 19; Instruções de Trabalho – Servidor CNES p. 3"}, {"id": "v8", "lane": "SRV", "col": 7, "label": "Aguardar a atualização dos arquivos de aplicação", "type": "task", "sys": "Servidor SCNES", "det": null, "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 20"}, {"id": "v9", "lane": "PORTAL", "col": 8, "label": "Transmissor › Parâmetros: atualizar a versão vigente", "type": "task", "sys": "Transmissor CNES", "det": null, "warn": "Envios em versão diferente da vigente passam a ser devolvidos.", "ref": "Rotinas de Trabalho 2026/2027 item 12; Instruções de Trabalho – Servidor CNES p. 4"}, {"id": "v10", "lane": "PORTAL", "col": 9, "label": "Informe + WhatsApp: atualizar bases locais na nova versão", "type": "task", "sys": "Portal DID – Informes", "det": null, "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 12; Instruções de Trabalho – Servidor CNES p. 4"}, {"id": "v11", "lane": "PORTAL", "col": 10, "label": "Publicar o atualizador: Repositório (Instaladores CNES) e arquivos.semsa", "type": "task", "sys": "Portal DID · FileZilla", "det": null, "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 14; Instruções de Trabalho – Servidor CNES p. 4"}, {"id": "v12", "lane": "NAO", "col": 10, "label": "Publicar no Google Drive compartilhado e avisar por e-mail", "type": "task", "sys": "Google Drive · e-mail", "det": null, "warn": null, "ref": "Rotinas de Trabalho 2026/2027 itens 15–16"}, {"id": "v13", "lane": "SEMSA", "col": 11, "label": "EAS atualizam a versão das bases locais", "type": "task", "sys": "SCNES local", "det": null, "warn": null, "ref": null}, {"id": "v14", "lane": "NAO", "col": 11, "label": "EAS não SEMSA atualizam a versão", "type": "task", "sys": "SCNES local", "det": null, "warn": null, "ref": null}, {"id": "v15", "lane": "DID", "col": 12, "label": "Novos envios aceitos somente na versão vigente", "type": "end", "sys": null, "det": null, "warn": null, "ref": null}], "edges": [{"from": "v1", "to": "v2", "label": null, "route": null}, {"from": "v2", "to": "v3", "label": "Sim", "route": null}, {"from": "v2", "to": "v5", "label": "Não", "route": "D"}, {"from": "v3", "to": "v4", "label": null, "route": null}, {"from": "v4", "to": "v5", "label": null, "route": null}, {"from": "v5", "to": "v6", "label": null, "route": null}, {"from": "v6", "to": "v7", "label": null, "route": null}, {"from": "v7", "to": "v8", "label": null, "route": null}, {"from": "v8", "to": "v9", "label": null, "route": null}, {"from": "v9", "to": "v10", "label": null, "route": null}, {"from": "v10", "to": "v11", "label": null, "route": null}, {"from": "v10", "to": "v12", "label": null, "route": null}, {"from": "v11", "to": "v13", "label": null, "route": null}, {"from": "v12", "to": "v14", "label": null, "route": null}, {"from": "v13", "to": "v15", "label": null, "route": null}, {"from": "v14", "to": "v15", "label": null, "route": null}], "seq": ["v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15"]}, {"id": "envios", "chip": "3 · Validação e importação de envios", "mp": "MP04", "title": "Recepção, validação e importação das bases locais dos EAS", "desc": "Cada envio (PRÉVIA ou FINAL) é conferido manualmente no Visualizador de QRP contra o Gestor Mapeado. Envios conformes são importados e marcados como “ok”; não conformes são devolvidos ao EAS com o motivo.", "lanes": [{"label": "EAS (base local)", "sub": "Gestor/operador CNES do estabelecimento", "accent": "#1d6fb8", "fill": "#f3f8fd", "id": "SEMSA"}, {"label": "Transmissor CNES / pasta Envios", "sub": "\\\\did.semsa\\EnviosCnes\\envios", "accent": "#d98b13", "fill": "#fffaf1", "id": "PORTAL"}, {"label": "DID/GEANE – Equipe CNES", "sub": "Operadores do Servidor SCNES", "accent": "#0b7a75", "fill": "#f2faf8", "id": "DID"}, {"label": "Servidor SCNES", "sub": "Base do Gestor Municipal (GDBs)", "accent": "#2f7d32", "fill": "#f5faf2", "id": "SRV"}], "nodes": [{"id": "e1", "lane": "SEMSA", "col": 0, "label": "EAS exporta a base local e envia .bck + .qrp", "type": "start", "sys": "SCNES local", "det": ["Exportação COMPLETA com destino Município P. Gestão (exceto Consultório Isolado)."], "warn": null, "ref": null}, {"id": "e2", "lane": "PORTAL", "col": 1, "label": "Envio registrado na Lista de Envios (ID) e salvo na pasta Envios", "type": "task", "sys": "Transmissor CNES", "det": ["Envios por e-mail (rede não SEMSA) entram no mesmo fluxo."], "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 31, 42"}, {"id": "e3", "lane": "DID", "col": 2, "label": "Abrir o .qrp no Visualizador de QRP e conferir com o Gestor Mapeado", "type": "task", "sys": "Visualizador de QRP", "det": ["Competência vigente", "Versão vigente", "Tipo de exportação: COMPLETA*", "Destino: Município P. Gestão*", "Nº de estabelecimentos conforme Gestor Mapeado", "Nº de equipes conforme Gestor Mapeado", "(*) exceto EAS tipo Consultório Isolado"], "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 34, 42"}, {"id": "e4", "lane": "DID", "col": 3, "label": "As 6 críticas mínimas conferem?", "type": "decision", "sys": null, "det": null, "warn": null, "ref": null}, {"id": "e5", "lane": "DID", "col": 4, "label": "Listar os arquivos válidos", "type": "task", "sys": "Transmissor CNES", "det": null, "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 43"}, {"id": "e6", "lane": "SRV", "col": 5, "label": "Conexão remota: importar as bases válidas e gerar relatório de importações", "type": "task", "sys": "Servidor SCNES", "det": null, "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 43"}, {"id": "e7", "lane": "PORTAL", "col": 6, "label": "Ações › Status do arquivo: “arquivos validados” › Salvar", "type": "task", "sys": "Transmissor CNES", "det": null, "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 43"}, {"id": "e8", "lane": "DID", "col": 7, "label": "Renomear o .bck com “ok” ao final do nome (antes da extensão)", "type": "task", "sys": "Pasta Envios", "det": null, "warn": "Evita que uma base validada deixe de ser importada quando vários operadores atuam no Servidor.", "ref": "Instruções de Trabalho – Servidor CNES p. 44"}, {"id": "e9", "lane": "DID", "col": 8, "label": "Base local importada", "type": "end", "sys": null, "det": null, "warn": null, "ref": null}, {"id": "e10", "lane": "PORTAL", "col": 4, "label": "Ações › Status “devolvido” + motivo + e-mail ao EAS (cc Diretor do Distrito)", "type": "task", "sys": "Transmissor CNES", "det": ["Ex.: “Crítica do Transmissor CNES: Versão do envio da base local diferente da versão vigente”.", "Ex.: “Número de EAS e número de Equipes em Não Conformidade. Base Local faltando EAS: XX e equipes: YY”."], "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 45"}, {"id": "e11", "lane": "PORTAL", "col": 5, "label": "Renomear o .bck com “rejeitado/devolvido”", "type": "task", "sys": "Pasta Envios", "det": null, "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 46"}, {"id": "e12", "lane": "SEMSA", "col": 5, "label": "EAS corrige a não conformidade e reenvia dentro do prazo", "type": "task", "sys": "SCNES local", "det": null, "warn": null, "ref": null}], "edges": [{"from": "e1", "to": "e2", "label": null, "route": null}, {"from": "e2", "to": "e3", "label": null, "route": null}, {"from": "e3", "to": "e4", "label": null, "route": null}, {"from": "e4", "to": "e5", "label": "Sim", "route": null}, {"from": "e4", "to": "e10", "label": "Não", "route": "U"}, {"from": "e5", "to": "e6", "label": null, "route": null}, {"from": "e6", "to": "e7", "label": null, "route": null}, {"from": "e7", "to": "e8", "label": null, "route": null}, {"from": "e8", "to": "e9", "label": null, "route": null}, {"from": "e10", "to": "e11", "label": null, "route": null}, {"from": "e11", "to": "e12", "label": null, "route": null}, {"from": "e12", "to": "e2", "label": "reenvio", "route": null}], "seq": ["e1", "e2", "e3", "e4", "e10", "e11", "e12", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9"]}, {"id": "transmissao", "chip": "4 · Transmissão ao Datasus/MS", "mp": "MP06", "title": "Transmissão da base do Gestor Municipal ao Datasus/MS", "desc": "Realizada às segundas, quartas e sextas até a data limite de envio FINAL do Gestor Municipal, conforme calendário do Datasus/MS.", "lanes": [{"label": "Servidor SCNES", "sub": "Base do Gestor Municipal (GDBs)", "accent": "#2f7d32", "fill": "#f5faf2", "id": "SRV"}, {"label": "Estação com Transmissor Datasus", "sub": "Equipe CNES/DID", "accent": "#0b7a75", "fill": "#f2faf8", "id": "DID"}, {"label": "Datasus/MS", "sub": "CNES Nacional · Gestor Federal", "accent": "#4f46e5", "fill": "#f6f7ff", "id": "MS"}], "nodes": [{"id": "t1", "lane": "DID", "col": 0, "label": "Dia de transmissão (seg/qua/sex) com os envios validados e importados", "type": "start", "sys": null, "det": null, "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 22"}, {"id": "t2", "lane": "SRV", "col": 1, "label": "Arquivos de exportação gerados em C:\\Datasus\\CNES\\Export", "type": "task", "sys": "Servidor SCNES", "det": null, "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 50"}, {"id": "t3", "lane": "SRV", "col": 2, "label": "Copiar para C:\\CNES-DID\\CNES 2026\\‹competência›\\TRANSMISSOES\\‹transmissão›", "type": "task", "sys": "Servidor SCNES", "det": null, "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 50"}, {"id": "t4", "lane": "DID", "col": 3, "label": "Copiar a pasta da transmissão para a área de trabalho da máquina com o Transmissor Datasus", "type": "task", "sys": "Estação local", "det": null, "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 50"}, {"id": "t5", "lane": "DID", "col": 4, "label": "Preencher tipo CNES, competência MM/AAAA, IBGE 130260, CPF do(a) Diretor(a) DID, senha e arquivo .bck", "type": "task", "sys": "Transmissor Datasus", "det": null, "warn": "CPF e senha são do(a) Diretor(a) da DID (Gestor Municipal) — mesmo usuário/senha do Transmissor Datasus.", "ref": "Instruções de Trabalho – Servidor CNES p. 29, 50"}, {"id": "t6", "lane": "MS", "col": 5, "label": "Testar a conexão (ignorar o teste com a Secretaria Estadual)", "type": "task", "sys": "Transmissor Datasus", "det": null, "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 51"}, {"id": "t7", "lane": "MS", "col": 6, "label": "Transmitir: recibo salvo automaticamente na pasta da transmissão", "type": "task", "sys": "Transmissor Datasus", "det": ["Ignorar transmissão à Secretaria Estadual.", "Sair do Transmissor."], "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 51"}, {"id": "t8", "lane": "SRV", "col": 7, "label": "Copiar e substituir a pasta da transmissão no Servidor (conexão remota)", "type": "task", "sys": "Servidor SCNES", "det": null, "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 51"}, {"id": "t9", "lane": "DID", "col": 8, "label": "Transmissão registrada com recibo", "type": "end", "sys": null, "det": null, "warn": null, "ref": null}], "edges": [{"from": "t1", "to": "t2", "label": null, "route": null}, {"from": "t2", "to": "t3", "label": null, "route": null}, {"from": "t3", "to": "t4", "label": null, "route": null}, {"from": "t4", "to": "t5", "label": null, "route": null}, {"from": "t5", "to": "t6", "label": null, "route": null}, {"from": "t6", "to": "t7", "label": null, "route": null}, {"from": "t7", "to": "t8", "label": null, "route": null}, {"from": "t8", "to": "t9", "label": null, "route": null}], "seq": ["t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8", "t9"]}, {"id": "qualidade", "chip": "5 · Qualidade da base e higienização", "mp": "MP07–MP08", "title": "Consistência, advertências e higienização de equipes", "desc": "Após importar todos os envios FINAIS, a base do Servidor passa por consistência completa, advertência e higienização dos profissionais desligados das equipes há mais de 60 dias (relatório DESLIGEQUIPE no ACCESS).", "lanes": [{"label": "Servidor SCNES", "sub": "Base do Gestor Municipal (GDBs)", "accent": "#2f7d32", "fill": "#f5faf2", "id": "SRV"}, {"label": "DID/GEANE – Equipe CNES", "sub": "Operadores do Servidor SCNES", "accent": "#0b7a75", "fill": "#f2faf8", "id": "DID"}, {"label": "Estação ACCESS", "sub": "Geração de Relatórios CNES", "accent": "#5b6876", "fill": "#f7f8fa", "id": "ACCESS"}, {"label": "EAS Rede SEMSA", "sub": "Distritos (GEIND/NUMOA), MMT, SAMU, descentralizados", "accent": "#1d6fb8", "fill": "#f3f8fd", "id": "SEMSA"}], "nodes": [{"id": "h1", "lane": "DID", "col": 0, "label": "Todos os envios FINAIS validados e importados", "type": "start", "sys": null, "det": null, "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 5"}, {"id": "h2", "lane": "SRV", "col": 1, "label": "Gerar consistência completa", "type": "task", "sys": "Servidor SCNES", "det": null, "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 2; Instruções de Trabalho – Servidor CNES p. 5"}, {"id": "h3", "lane": "SRV", "col": 2, "label": "Há inconsistências?", "type": "decision", "sys": null, "det": null, "warn": null, "ref": null}, {"id": "h4", "lane": "DID", "col": 2, "label": "Sanar as inconsistências na base", "type": "task", "sys": "Servidor SCNES", "det": ["Repetir a consistência até o relatório não sinalizar inconsistências."], "warn": null, "ref": null}, {"id": "h5", "lane": "SRV", "col": 3, "label": "Gerar advertência completa e salvar na pasta da competência", "type": "task", "sys": "Servidor SCNES", "det": null, "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 5"}, {"id": "h6", "lane": "DID", "col": 4, "label": "Sanar o que for possível nas advertências", "type": "task", "sys": "Servidor SCNES", "det": null, "warn": null, "ref": null}, {"id": "h7", "lane": "SEMSA", "col": 5, "label": "EAS recebe as advertências por e-mail para providências nas próximas competências", "type": "task", "sys": "E-mail", "det": null, "warn": null, "ref": null}, {"id": "h8", "lane": "SRV", "col": 6, "label": "Conexão remota, app FECHADO: copiar os GDBs de C:\\Datasus\\CNES", "type": "task", "sys": "Servidor SCNES", "det": null, "warn": "O app CNES do Servidor deve estar FECHADO durante a cópia.", "ref": "Rotinas de Trabalho 2026/2027 item 25; Instruções de Trabalho – Servidor CNES p. 6"}, {"id": "h9", "lane": "ACCESS", "col": 7, "label": "Colar/substituir os GDBs em C:\\Datasus\\CNES da estação (perfil administrador)", "type": "task", "sys": "Estação ACCESS", "det": ["Fechar o gerenciador de arquivos e sair da conexão remota."], "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 6"}, {"id": "h10", "lane": "ACCESS", "col": 8, "label": "Abrir C:\\Sistemas\\Access-G e gerar o relatório DESLIGEQUIPE", "type": "task", "sys": "ACCESS – Geração de Relatórios CNES", "det": null, "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 6"}, {"id": "h11", "lane": "DID", "col": 9, "label": "Salvar o relatório “Profs Desligados de Equipe” na pasta da competência", "type": "task", "sys": null, "det": null, "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 25"}, {"id": "h12", "lane": "SRV", "col": 10, "label": "Higienizar as equipes: profissionais com desligamento há mais de 60 dias", "type": "task", "sys": "Servidor SCNES", "det": ["Referência: data de desligamento informada em relação à competência vigente."], "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 26; Instruções de Trabalho – Servidor CNES p. 6"}, {"id": "h13", "lane": "DID", "col": 11, "label": "Base pronta para a transmissão final", "type": "end", "sys": null, "det": null, "warn": null, "ref": null}], "edges": [{"from": "h1", "to": "h2", "label": null, "route": null}, {"from": "h2", "to": "h3", "label": null, "route": null}, {"from": "h3", "to": "h4", "label": "Sim", "route": null}, {"from": "h4", "to": "h2", "label": null, "route": "L"}, {"from": "h3", "to": "h5", "label": "Não", "route": null}, {"from": "h5", "to": "h6", "label": null, "route": null}, {"from": "h6", "to": "h7", "label": null, "route": null}, {"from": "h6", "to": "h8", "label": null, "route": null}, {"from": "h8", "to": "h9", "label": null, "route": null}, {"from": "h9", "to": "h10", "label": null, "route": null}, {"from": "h10", "to": "h11", "label": null, "route": null}, {"from": "h11", "to": "h12", "label": null, "route": null}, {"from": "h12", "to": "h13", "label": null, "route": null}], "seq": ["h1", "h2", "h3", "h4", "h2", "h3", "h5", "h6", "h7", "h8", "h9", "h10", "h11", "h12", "h13"]}, {"id": "demandas", "chip": "6 · Demandas cadastrais (SIGED/Quire)", "mp": "MP10", "title": "Atendimento a demandas cadastrais sob gestão", "desc": "Demandas recebidas via SIGED (registradas no Quire) ou por e-mail são roteadas conforme o tipo: Área Restrita do CNES Nacional, site antigo CNES2, base do Servidor ou Sistema ADA.", "lanes": [{"label": "Solicitante", "sub": "EAS, Distritos, SIGED, Bringel", "accent": "#1d6fb8", "fill": "#f3f8fd", "id": "SOL"}, {"label": "DID/GEANE – Equipe CNES", "sub": "Operadores do Servidor SCNES", "accent": "#0b7a75", "fill": "#f2faf8", "id": "DID"}, {"label": "CNES Nacional – Área Restrita", "sub": "CNES Administrador (senha do Gestor Municipal)", "accent": "#4f46e5", "fill": "#f6f7ff", "id": "NAC"}, {"label": "Site antigo CNES2", "sub": "Serviços › Gestores", "accent": "#6d5bd0", "fill": "#f8f6ff", "id": "OLD"}, {"label": "Servidor SCNES", "sub": "Base do Gestor Municipal (GDBs)", "accent": "#2f7d32", "fill": "#f5faf2", "id": "SRV"}, {"label": "Sistema ADA", "sub": "Administração › Portarias de INE", "accent": "#c0392b", "fill": "#fdf5f4", "id": "ADA"}], "nodes": [{"id": "d1", "lane": "SOL", "col": 0, "label": "Demanda via SIGED ou e-mail (inclusive Unidades Móveis da Bringel)", "type": "start", "sys": "SIGED · e-mail", "det": null, "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 27"}, {"id": "d2", "lane": "DID", "col": 1, "label": "Registrar a tarefa no Quire e a pasta de evidências da competência", "type": "task", "sys": "Quire", "det": null, "warn": null, "ref": "Rotinas de Trabalho 2026/2027 item 27; Instruções de Trabalho – Servidor CNES p. 6"}, {"id": "d3", "lane": "DID", "col": 2, "label": "Tipo de demanda?", "type": "decision", "sys": null, "det": null, "warn": null, "ref": null}, {"id": "d4", "lane": "NAC", "col": 3, "label": "Criar CNES, criar/remanejar INE ou desativar CNES", "type": "task", "sys": "CNES Nacional – Área Restrita", "det": ["Gestão CNES › Cadastros › Numeração CNES: CNPJ da mantenedora, nome fantasia, móvel/imóvel → Salvar; printar a tela com o código e salvar na pasta da tarefa Quire.", "Numeração de Equipes › Cadastro: criar INE. O tipo do INE NÃO pode ser alterado depois.", "Remanejar INE de CNES origem para CNES destino.", "Desativação: mesmo motivo informado no Servidor; justificativa = nº SIGED + memorando.", "Consulta: é possível alterar nome fantasia de CNES e INE."], "warn": "Não é possível excluir CNES na Área Restrita.", "ref": "Instruções de Trabalho – Servidor CNES p. 7, 19–22"}, {"id": "d5", "lane": "OLD", "col": 3, "label": "Cadastro de gestores ou inclusão de terceiros", "type": "task", "sys": "Site antigo CNES2", "det": ["Serviços › Gestores › Alteração CPF/senha do gestor – Transmissor Datasus (CNES, CIHA, SAMU, SIAB, SIASUS, SIAHD, SIPNI).", "“Cadastramento de Gestor”: alterar gestores da secretaria, diretorias e SIS.", "“Inclusão de Terceiros”: habilitar estabelecimento como terceiro do município."], "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 24–26"}, {"id": "d6", "lane": "SRV", "col": 3, "label": "Atualizar cadastro na base ou excluir estabelecimento", "type": "task", "sys": "Servidor SCNES", "det": ["Exclusão: Utilitários › Excluir › Estabelecimento › lupa › Excluir › confirmar.", "Conferir em Cadastro › Estabelecimentos se ainda aparece."], "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 60–67"}, {"id": "d7", "lane": "ADA", "col": 3, "label": "Editar portarias de homologação ou deshomologação de INE", "type": "task", "sys": "Sistema ADA – Administração", "det": ["Login de administração (equipe CNES/GEANE/DID).", "INE listado: Editar. INE não listado: Novo e cadastrar.", "Consultas de profissionais, cenário de equipes e relatórios exportáveis (Excel/PDF)."], "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 52–59"}, {"id": "d8", "lane": "DID", "col": 5, "label": "Concluir: evidências na pasta/Quire e retorno ao solicitante", "type": "end", "sys": null, "det": null, "warn": null, "ref": null}], "edges": [{"from": "d1", "to": "d2", "label": null, "route": null}, {"from": "d2", "to": "d3", "label": null, "route": null}, {"from": "d3", "to": "d4", "label": "Área Restrita", "route": null}, {"from": "d3", "to": "d5", "label": null, "route": null}, {"from": "d3", "to": "d6", "label": null, "route": null}, {"from": "d3", "to": "d7", "label": null, "route": null}, {"from": "d4", "to": "d8", "label": null, "route": null}, {"from": "d5", "to": "d8", "label": null, "route": null}, {"from": "d6", "to": "d8", "label": null, "route": null}, {"from": "d7", "to": "d8", "label": null, "route": null}], "seq": ["d1", "d2", "d3", "d4", "d3", "d5", "d3", "d6", "d3", "d7", "d8"]}, {"id": "contingencia", "chip": "7 · Acessos e contingência", "mp": "MP11", "title": "Senha do Gestor Municipal e restauração do Servidor", "desc": "Dois procedimentos de suporte: renovação da senha do Gestor Municipal (expira a cada 90 dias) e restauração do Servidor SCNES a partir da base do Gestor Federal quando o backup da DID estiver corrompido.", "lanes": [{"label": "Diretor(a) da DID", "sub": "Titular do acesso de Gestor Municipal", "accent": "#12355b", "fill": "#f4f6fa", "id": "DIR"}, {"label": "CNES Nacional – Área Restrita", "sub": "CNES Administrador (senha do Gestor Municipal)", "accent": "#4f46e5", "fill": "#f6f7ff", "id": "NAC"}, {"label": "DID/GEANE – Equipe CNES", "sub": "Operadores do Servidor SCNES", "accent": "#0b7a75", "fill": "#f2faf8", "id": "DID"}, {"label": "Datasus/MS – Gestor Federal", "sub": "Solicitação de base (Área Restrita)", "accent": "#4f46e5", "fill": "#f6f7ff", "id": "MS"}, {"label": "Servidor SCNES", "sub": "Base do Gestor Municipal (GDBs)", "accent": "#2f7d32", "fill": "#f5faf2", "id": "SRV"}], "nodes": [{"id": "a1", "lane": "NAC", "col": 0, "label": "Aviso de senha inválida/expirada (validade de 90 dias)", "type": "start", "sys": "CNES Administrador", "det": null, "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 8–10"}, {"id": "a2", "lane": "NAC", "col": 1, "label": "Clicar em “Esqueceu sua senha?”", "type": "task", "sys": "CNES Administrador", "det": null, "warn": null, "ref": null}, {"id": "a3", "lane": "DIR", "col": 2, "label": "Diretor(a) da DID acessa o e-mail institucional e abre o link", "type": "task", "sys": "E-mail institucional", "det": null, "warn": "O acesso depende do(a) Diretor(a) da DID — titular do CPF do Gestor Municipal.", "ref": "Instruções de Trabalho – Servidor CNES p. 11"}, {"id": "a4", "lane": "NAC", "col": 3, "label": "Definir a nova senha (ou Meu Perfil › Alterar senha › Atualizar)", "type": "task", "sys": "CNES Administrador", "det": null, "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 12–16"}, {"id": "a5", "lane": "DID", "col": 4, "label": "Deslogar/logar para testar o acesso e sair da Área Restrita", "type": "task", "sys": null, "det": null, "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 11, 17"}, {"id": "a6", "lane": "DID", "col": 5, "label": "Acesso restabelecido", "type": "end", "sys": null, "det": null, "warn": null, "ref": null}, {"id": "b1", "lane": "SRV", "col": 0, "label": "Backup da DID corrompido: Servidor precisa ser restaurado", "type": "start", "sys": "Servidor SCNES", "det": null, "warn": null, "ref": "Instruções de Trabalho – Servidor CNES p. 23"}, {"id": "b2", "lane": "MS", "col": 1, "label": "Solicitar a base ao Gestor Federal na Área Restrita", "type": "task", "sys": "CNES Nacional – Área Restrita", "det": null, "warn": null, "ref": null}, {"id": "b3", "lane": "MS", "col": 2, "label": "Base disponível para download após ~24 h", "type": "event", "sys": null, "det": null, "warn": null, "ref": null}, {"id": "b4", "lane": "SRV", "col": 3, "label": "Nova instalação do Servidor SCNES e importação da base", "type": "task", "sys": "Servidor SCNES", "det": null, "warn": "O Servidor já deve ter passado por nova instalação antes da importação.", "ref": null}, {"id": "b5", "lane": "SRV", "col": 4, "label": "Higienizar a base do Servidor SCNES", "type": "task", "sys": "Servidor SCNES", "det": null, "warn": null, "ref": null}, {"id": "b6", "lane": "SRV", "col": 5, "label": "Servidor restaurado", "type": "end", "sys": null, "det": null, "warn": null, "ref": null}], "edges": [{"from": "a1", "to": "a2", "label": null, "route": null}, {"from": "a2", "to": "a3", "label": null, "route": null}, {"from": "a3", "to": "a4", "label": null, "route": null}, {"from": "a4", "to": "a5", "label": null, "route": null}, {"from": "a5", "to": "a6", "label": null, "route": null}, {"from": "b1", "to": "b2", "label": null, "route": null}, {"from": "b2", "to": "b3", "label": null, "route": null}, {"from": "b3", "to": "b4", "label": null, "route": null}, {"from": "b4", "to": "b5", "label": null, "route": null}, {"from": "b5", "to": "b6", "label": null, "route": null}], "seq": ["a1", "a2", "a3", "a4", "a5", "a6", "b1", "b2", "b3", "b4", "b5", "b6"]}];
+
+/* ---------- roteamento ---------- */
+const VIEWS=['fluxos','mapeamento','controles'];
+function showView(v){
+  if(!VIEWS.includes(v))v='fluxos';
+  document.querySelectorAll('.view').forEach(e=>e.classList.toggle('on',e.id==='v-'+v));
+  document.querySelectorAll('nav.tabs a').forEach(a=>a.classList.toggle('on',a.dataset.v===v));
+}
+function setView(v){
+  showView(v);
+  // atualiza o endereço quando o ambiente permitir (GitHub Pages); se não, ignora
+  try{history.replaceState(null,'','#'+v);}catch(e){}
+}
+function route(){let h='';try{h=(location.hash||'').slice(1);}catch(e){}showView(h);}
+window.addEventListener('hashchange',route);
+document.querySelectorAll('nav.tabs a').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();setView(a.dataset.v);window.scrollTo({top:0});}));
+
+/* ---------- motor de fluxograma ---------- */
+const LW=150, CW=178, LH=136, NW=152, NH=74, DW=128, DH=92;
+const NS='http://www.w3.org/2000/svg';
+let F=null, step=-1, playing=false, timer=null, raf=null, nodeEls={}, edgeEls={}, posMap={};
+const el=(t,a={},p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;};
+
+function wrap(s,n){
+  const w=s.split(' ');const L=[];let c='';
+  for(const x of w){ if((c+' '+x).trim().length>n && c){L.push(c);c=x;} else c=(c+' '+x).trim(); }
+  if(c)L.push(c); return L;
+}
+function dims(n){ if(n.type==='decision')return[DW,DH]; return[NW,NH]; }
+
+function laneIdx(id){return F.lanes.findIndex(l=>l.id===id);}
+
+function buildFlow(id){
+  stop(); F=FLOWS.find(f=>f.id===id); step=-1;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.f===id));
+  document.getElementById('ftitle').textContent=F.title;
+  document.getElementById('fdesc').textContent=F.desc;
+  const maxCol=Math.max(...F.nodes.map(n=>n.col));
+  const W=LW+(maxCol+1)*CW+20, H=F.lanes.length*LH;
+  const cv=document.getElementById('canvas'); cv.innerHTML=''; cv.scrollLeft=0;
+  const svg=el('svg',{width:W,height:H,viewBox:`0 0 ${W} ${H}`},cv);
+  const defs=el('defs',{},svg);
+  defs.innerHTML=`<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#8795a6"/></marker>
+  <marker id="arrOn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#0b7a75"/></marker>
+  <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+  // raias
+  F.lanes.forEach((l,i)=>{
+    el('rect',{x:0,y:i*LH,width:W,height:LH,fill:l.fill},svg);
+    el('rect',{x:0,y:i*LH,width:LW-8,height:LH,fill:l.accent,opacity:.12},svg);
+    el('rect',{x:0,y:i*LH,width:5,height:LH,fill:l.accent},svg);
+    el('line',{x1:0,x2:W,y1:(i+1)*LH,y2:(i+1)*LH,stroke:'#d8dee6'},svg);
+    const t=el('text',{x:16,y:i*LH+LH/2-((wrap(l.label,17).length-1)*7)-(l.sub?6:0),class:'lane-label'},svg);
+    wrap(l.label,17).forEach((ln,k)=>{const ts=el('tspan',{x:16,dy:k?14:0},t);ts.textContent=ln;});
+    if(l.sub){const s=el('text',{x:16,y:i*LH+LH/2+wrap(l.label,17).length*7+6,class:'lane-sub'},svg);
+      wrap(l.sub,22).forEach((ln,k)=>{const ts=el('tspan',{x:16,dy:k?12:0},s);ts.textContent=ln;});}
+  });
+  // posições
+  posMap={};
+  F.nodes.forEach(n=>{const li=laneIdx(n.lane);const[w,h]=dims(n);
+    posMap[n.id]={cx:LW+n.col*CW+CW/2,cy:li*LH+LH/2,w,h,li,col:n.col,lane:F.lanes[li]};});
+  // arestas
+  const gE=el('g',{},svg); edgeEls={};
+  F.edges.forEach(e=>{
+    const p=el('path',{d:edgePath(e.from,e.to,e.route),class:'edge','marker-end':'url(#arr)'},gE);
+    edgeEls[e.from+'>'+e.to]=p;
+    if(e.label){const L=p.getTotalLength();const pt=p.getPointAtLength(Math.min(16,L/3));
+      const t=el('text',{x:pt.x+5,y:pt.y-6,class:'elabel'},gE);t.textContent=e.label;}
+  });
+  // nós
+  const gN=el('g',{},svg); nodeEls={};
+  const order=[...new Set(F.seq)];
+  F.nodes.forEach(n=>{
+    const P=posMap[n.id], ac=P.lane.accent;
+    const g=el('g',{class:'node dim',transform:`translate(${P.cx},${P.cy})`},gN); nodeEls[n.id]=g;
+    let shape, halo;
+    if(n.type==='decision'){
+      const pts=`0,${-DH/2} ${DW/2},0 0,${DH/2} ${-DW/2},0`;
+      halo=el('polygon',{points:pts,class:'halo'},g);
+      shape=el('polygon',{points:pts,class:'shape',fill:'#fff6e6',stroke:'#d98b13'},g);
+    } else {
+      const r=(n.type==='start'||n.type==='end')?NH/2:8;
+      halo=el('rect',{x:-NW/2,y:-NH/2,width:NW,height:NH,rx:r,class:'halo'},g);
+      const fill=n.type==='start'?'#e7f6ee':n.type==='end'?'#e9eef5':'#fff';
+      const stroke=n.type==='start'?'#1f8a4c':n.type==='end'?'#12355b':ac;
+      shape=el('rect',{x:-NW/2,y:-NH/2,width:NW,height:NH,rx:r,class:'shape',fill,stroke},g);
+      if(n.type==='event')shape.setAttribute('stroke-dasharray','5 3');
+    }
+    const lines=wrap(n.label,n.type==='decision'?16:22).slice(0,5);
+    const t=el('text',{'text-anchor':'middle',y:-(lines.length-1)*6.5+4},g);
+    lines.forEach((ln,k)=>{const ts=el('tspan',{x:0,dy:k?13:0},t);ts.textContent=ln;});
+    const idx=order.indexOf(n.id);
+    if(idx>=0){const bx=n.type==='decision'?-DW/2+6:-NW/2+2, by=n.type==='decision'?-DH/2+10:-NH/2+2;
+      el('circle',{cx:bx,cy:by,r:10,fill:ac},g);const nt=el('text',{x:bx,y:by+3.5,'text-anchor':'middle',class:'num'},g);nt.textContent=idx+1;}
+    g.addEventListener('click',()=>{stop();const k=F.seq.indexOf(n.id);goTo(k>=0?k:step,false);if(k<0)showDetail(n);});
+  });
+  // lista
+  const ol=document.getElementById('steps'); ol.innerHTML='';
+  F.seq.forEach((id,k)=>{const n=F.nodes.find(x=>x.id===id);const li=document.createElement('li');
+    li.innerHTML=`<b>${order.indexOf(id)+1}</b><span>${n.label}</span>`;li.onclick=()=>{stop();goTo(k,false);};ol.appendChild(li);});
+  document.getElementById('svgtoken')?.remove();
+  el('circle',{id:'svgtoken',r:7,class:'token',cx:-50,cy:-50},svg);
+  showDetail(null); updateUI();
+}
+
+function edgePath(a,b,route){
+  const A=posMap[a],B=posMap[b];
+  const aR=A.cx+A.w/2, bL=B.cx-B.w/2;
+  if(route==='D') return `M${A.cx},${A.cy+A.h/2}V${B.cy}H${bL}`;
+  if(route==='U') return `M${A.cx},${A.cy-A.h/2}V${B.cy}H${bL}`;
+  if(route==='L') return `M${A.cx-A.w/2},${A.cy}H${B.cx}V${B.li>A.li?B.cy-B.h/2:B.cy+B.h/2}`;
+  if(B.col>A.col){
+    if(A.li===B.li) return `M${aR},${A.cy}H${bL}`;
+    const mx=aR+Math.max(14,(bL-aR)/2);
+    return `M${aR},${A.cy}H${mx}V${B.cy}H${bL}`;
+  }
+  if(B.col===A.col){
+    return B.li>A.li?`M${A.cx},${A.cy+A.h/2}V${B.cy-B.h/2}`:`M${A.cx},${A.cy-A.h/2}V${B.cy+B.h/2}`;
+  }
+  // retorno
+  if(B.li<A.li){const y=A.li*LH+12;return `M${A.cx},${A.cy-A.h/2}V${y}H${B.cx}V${B.cy+B.h/2}`;}
+  const y=(A.li+1)*LH-12;
+  const end=B.li===A.li?B.cy+B.h/2:B.cy-B.h/2;
+  if(B.li===A.li) return `M${A.cx},${A.cy+A.h/2}V${y}H${B.cx}V${end}`;
+  return `M${A.cx},${A.cy+A.h/2}V${y}H${B.cx}V${end}`;
+}
+
+function showDetail(n){
+  const d=document.getElementById('detail');
+  if(!n){d.innerHTML=`<span class="tag">${F.mp}</span><h3>${F.title}</h3><p style="margin:4px 0">${F.desc}</p><p class="note" style="margin-top:10px">Pressione <b>▶ Reproduzir</b> para animar o fluxo passo a passo, ou clique em uma etapa do diagrama.</p>`;return;}
+  const lane=F.lanes.find(l=>l.id===n.lane);
+  d.innerHTML=`<span class="tag" style="background:${lane.accent}22;color:${lane.accent}">${lane.label}</span>${n.sys?`<span class="tag">${n.sys}</span>`:''}
+  <h3>${n.label}</h3>${n.det?`<ul>${n.det.map(x=>`<li>${x}</li>`).join('')}</ul>`:''}
+  ${n.warn?`<div class="warn">⚠ ${n.warn}</div>`:''}${n.ref?`<div class="ref">Fonte: ${n.ref}</div>`:''}`;
+}
+
+function updateUI(){
+  const done=new Set(F.seq.slice(0,step+1));
+  const cur=F.seq[step];
+  F.nodes.forEach(n=>{const g=nodeEls[n.id];g.classList.remove('active','done','dim');
+    if(n.id===cur)g.classList.add('active');else if(done.has(n.id))g.classList.add('done');else g.classList.add('dim');});
+  Object.values(edgeEls).forEach(p=>{p.classList.remove('done');p.setAttribute('marker-end','url(#arr)');});
+  for(let k=1;k<=step;k++){const p=edgeEls[F.seq[k-1]+'>'+F.seq[k]];if(p){p.classList.add('done');p.setAttribute('marker-end','url(#arrOn)');}}
+  document.querySelectorAll('#steps li').forEach((li,k)=>{li.className=k===step?'cur':k<step?'done':'';});
+  // rola apenas a caixa da lista, sem mover a página
+  const cl=document.querySelector('#steps li.cur'), box=document.querySelector('.steps');
+  if(cl&&box){const top=cl.offsetTop-box.offsetTop;
+    if(top<box.scrollTop||top+cl.offsetHeight>box.scrollTop+box.clientHeight)
+      box.scrollTo({top:top-box.clientHeight/2+cl.offsetHeight/2,behavior:'smooth'});}
+  document.getElementById('prog').textContent=step<0?`0 / ${F.seq.length}`:`Passo ${step+1} / ${F.seq.length}`;
+  document.getElementById('pbar').style.width=((step+1)/F.seq.length*100)+'%';
+  document.getElementById('bPlay').textContent=playing?'⏸ Pausar':(step>=F.seq.length-1?'⟲ Repetir':'▶ Reproduzir');
+}
+
+function scrollToNode(id){
+  const cv=document.getElementById('canvas'),P=posMap[id];
+  cv.scrollTo({left:Math.max(0,P.cx-cv.clientWidth/2),top:Math.max(0,P.cy-cv.clientHeight/2),behavior:'smooth'});
+}
+
+function goTo(k,animate){
+  cancelAnimationFrame(raf);
+  const prev=F.seq[step], next=F.seq[k];
+  const tok=document.getElementById('svgtoken');
+  const path=animate&&prev?edgeEls[prev+'>'+next]:null;
+  const finish=()=>{step=k;updateUI();const n=F.nodes.find(x=>x.id===next);showDetail(n);scrollToNode(next);
+    const P=posMap[next];tok.setAttribute('cx',P.cx);tok.setAttribute('cy',P.cy);tok.style.opacity=0;};
+  if(!path){finish();if(playing)schedule();return;}
+  const L=path.getTotalLength(), sp=+document.getElementById('speed').value, dur=Math.max(500,L*2.6)/sp;
+  tok.style.opacity=1; const t0=performance.now();
+  scrollToNode(next);
+  const tick=now=>{const r=Math.min(1,(now-t0)/dur);const e=r<.5?2*r*r:1-Math.pow(-2*r+2,2)/2;
+    const pt=path.getPointAtLength(L*e);tok.setAttribute('cx',pt.x);tok.setAttribute('cy',pt.y);
+    if(r<1)raf=requestAnimationFrame(tick);else{finish();if(playing)schedule();}};
+  raf=requestAnimationFrame(tick);
+}
+function schedule(){
+  clearTimeout(timer);
+  if(step>=F.seq.length-1){playing=false;updateUI();return;}
+  const sp=+document.getElementById('speed').value;
+  timer=setTimeout(()=>goTo(step+1,true),1500/sp);
+}
+// ao reproduzir, mantém o diagrama visível na tela
+function focusCanvas(){
+  const r=document.getElementById('canvas').getBoundingClientRect();
+  if(r.top<0||r.bottom>window.innerHeight)
+    window.scrollTo({top:window.scrollY+r.top-90,behavior:'smooth'});
+}
+function stop(){playing=false;clearTimeout(timer);cancelAnimationFrame(raf);if(F)updateUI();}
+document.getElementById('bPlay').onclick=()=>{
+  if(playing){stop();return;}
+  if(step>=F.seq.length-1){step=-1;updateUI();}
+  playing=true;updateUI();
+  focusCanvas();
+  if(step<0)goTo(0,false);else goTo(step+1,true);
+};
+document.getElementById('bNext').onclick=()=>{stop();if(step<F.seq.length-1)goTo(step+1,true);};
+document.getElementById('bPrev').onclick=()=>{stop();if(step>0)goTo(step-1,false);};
+document.getElementById('bReset').onclick=()=>{stop();step=-1;updateUI();showDetail(null);document.getElementById('canvas').scrollTo({left:0,behavior:'smooth'});document.getElementById('svgtoken').style.opacity=0;};
+
+const chips=document.getElementById('chips');
+FLOWS.forEach(f=>{const b=document.createElement('button');b.className='chip';b.dataset.f=f.id;b.textContent=f.chip;b.onclick=()=>buildFlow(f.id);chips.appendChild(b);});
+
+/* ---------- mapeamento ---------- */
+const esc=s=>s;
+function tbl(id,head,rows){document.getElementById(id).innerHTML=`<tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr>`+rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');}
+document.getElementById('kpis').innerHTML=MAP.kpis.map(k=>`<div class="kpi"><b>${k[0]}</b><span>${k[1]}</span></div>`).join('');
+document.getElementById('chain').innerHTML=MAP.mps.map(m=>`<a href="#mapeamento" class="g${m.grupo}" data-mp="${m.id}">${m.id}<small>${m.nome}</small></a>`).join('');
+document.getElementById('mps').innerHTML=MAP.mps.map(m=>`
+<details class="mp" id="${m.id}"><summary><span class="id">${m.id}</span><span class="nm">${m.nome}</span><span class="fq">${m.frequencia}</span></summary>
+<div class="mpbody">
+ <div class="grid2">
+  <div><h4>Objetivo</h4><p>${m.objetivo}</p></div>
+  <div><h4>Gatilho</h4><p>${m.gatilho}</p></div>
+  <div><h4>Atores</h4><p>${m.atores}</p></div>
+  <div><h4>Sistemas / ferramentas</h4><p>${m.sistemas}</p></div>
+  <div><h4>Entradas</h4><ul>${m.entradas.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+  <div><h4>Saídas</h4><ul>${m.saidas.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+ </div>
+ <div class="grid2" style="grid-template-columns:1fr"><div><h4>Atividades</h4><ol class="acts">${m.atividades.map(x=>`<li>${x}</li>`).join('')}</ol></div>
+ ${m.controles.length?`<div><h4>Regras e pontos de controle</h4><ul>${m.controles.map(x=>`<li>${x}</li>`).join('')}</ul></div>`:''}</div>
+ <div class="ref">Fonte: ${m.ref}</div>
+ ${m.fluxo?`<button class="linkflow" data-flow="${m.fluxo}">▶ Ver fluxograma animado</button>`:''}
+</div></details>`).join('');
+document.querySelectorAll('.chain a').forEach(a=>a.onclick=e=>{e.preventDefault();const d=document.getElementById(a.dataset.mp);d.open=true;d.scrollIntoView({behavior:'smooth'});});
+document.querySelectorAll('.linkflow').forEach(b=>b.onclick=()=>{setView('fluxos');buildFlow(b.dataset.flow);window.scrollTo({top:0});});
+document.getElementById('raci').innerHTML=`<tr>${MAP.raci.head.map(h=>`<th>${h}</th>`).join('')}</tr>`+MAP.raci.rows.map(r=>`<tr><td>${r[0]}</td>${r.slice(1).map(c=>`<td class="c">${c}</td>`).join('')}</tr>`).join('');
+tbl('sist',['Sistema / local','Uso no processo','Macroprocessos'],MAP.sistemas);
+tbl('criticas',['#','Crítica','Exemplo de motivo de devolução'],MAP.criticas);
+tbl('calend',['Quando','O quê'],MAP.calendario);
+tbl('riscos',['Ponto de controle / risco','Tratamento previsto','MP'],MAP.riscos);
+tbl('diverg',['Tema','Rotinas de Trabalho','Instruções de Trabalho','Encaminhamento sugerido'],MAP.divergencias);
+tbl('melhorias',['Oportunidade','Benefício esperado'],MAP.melhorias);
+
+route(); buildFlow(FLOWS[0].id);
+</script>
+</body>
+</html>
